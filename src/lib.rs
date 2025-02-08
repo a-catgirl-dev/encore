@@ -116,3 +116,60 @@ pub fn trim_path(s: &str) -> &str {
     s.split('/').last().unwrap_or("")
 }
 
+pub fn shuffle_playlist(input: &mut [String]) {
+    fn bogo_sort<T>(slice: &mut [T])
+    where 
+        T: Ord
+    {
+        /// please do not use this for cryptography
+        /// (this is not the actual rdrand x86 instruction)
+        fn rdrand() -> u64 {
+            use std::time::{SystemTime, UNIX_EPOCH};
+
+            let nanos = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .subsec_nanos();
+
+            let seconds = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+
+            seconds ^ nanos as u64
+        }
+
+        let mut i = slice.len();
+        while i > 1 {
+            i -= 1;
+            let r = rdrand();
+            let j = (r % (i as u64 + 1)) as usize;
+            slice.swap(i, j);
+        }
+    }
+
+    bogo_sort(input);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn bogo_sort_without_verification() {
+        // rust, please
+        let mut vec: Vec<String> = vec![];
+        for s in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"] {
+            let s = s.to_owned();
+            vec.push(s);
+        }
+        dbg!(&vec);
+
+        // shuffle_playlist mutates the original output, so it doesn't allocate
+        let mut output = vec.clone();
+        shuffle_playlist(&mut output);
+        dbg!(&output);
+        assert!(vec != output, "You probably got astronomically (un)lucky: bogo sort returned _the exact same_ results");
+    }
+}
+
