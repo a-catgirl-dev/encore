@@ -236,8 +236,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ToggleShuffle => {
                     let mut playlist = PLAYLIST.write().unwrap();
                     if SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap().is_none() {
-                        // don't allocate extra memory for storing another copy of the playlist
-                        // initially.
                         *SHUFFLE_ORIGINAL_PLAYLIST.write().unwrap() = Some(playlist.to_vec());
                         let shuffle_original_playlist = SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap();
                         let mut first_time = true;
