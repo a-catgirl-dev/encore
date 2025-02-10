@@ -30,8 +30,9 @@ pub enum SongControl {
     Pause,
     Resume,
 
-    Shuffle,
-    Unshuffle,
+    ToggleShuffle,
+    ShuffleOn,
+    ShuffleOff,
 
     No,
 

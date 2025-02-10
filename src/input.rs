@@ -20,7 +20,7 @@ impl Input {
             Key::Char('k') => SongControl::PrevSong,
             Key::Char('j') => SongControl::NextSong,
             Key::Char(' ') => SongControl::TogglePause,
-            Key::Char('s') => SongControl::Shuffle,
+            Key::Char('s') => SongControl::ToggleShuffle,
             Key::Ctrl('c') | Key::Char('q') => SongControl::DestroyAndExit,
             _ => SongControl::No,
         }

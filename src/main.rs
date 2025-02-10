@@ -233,19 +233,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 SeekBackward => {
                     let _ = audio.sink.try_seek(audio.sink.get_pos().saturating_sub(std::time::Duration::from_secs(5)));
                 }
-                Shuffle => {
+                ToggleShuffle => {
                     let mut playlist = PLAYLIST.write().unwrap();
                     if SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap().is_none() {
                         // don't allocate extra memory for storing another copy of the playlist
                         // initially.
                         *SHUFFLE_ORIGINAL_PLAYLIST.write().unwrap() = Some(playlist.to_vec());
+                        let shuffle_original_playlist = SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap();
+                        let mut first_time = true;
+                        while *shuffle_original_playlist.as_ref().unwrap() == *playlist || first_time {
+                            first_time = false;
+                            encore::shuffle_playlist(&mut playlist);
+                        }
+                    } else {
+                        let mut shuffle_original_playlist = SHUFFLE_ORIGINAL_PLAYLIST.write().unwrap();
+                        *playlist = shuffle_original_playlist.clone().unwrap();
+                        *shuffle_original_playlist = None;
                     }
-                    let shuffle_original_playlist = SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap();
-                    let mut first_time = true;
-                    while *shuffle_original_playlist.as_ref().unwrap() == *playlist || first_time {
-                        first_time = false;
-                        encore::shuffle_playlist(&mut playlist);
-                    }
+
                     drop(playlist); // audio.rejitter_song() will call another method that needs
                                     // read access to `PLAYLIST`
                                     // drop it to prevent deadlock.
