@@ -22,6 +22,7 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 
 lazy_static::lazy_static!{
     static ref PLAYLIST: RwLock<Vec<String>> = Default::default();
+    static ref SHUFFLE_ORIGINAL_PLAYLIST: RwLock<Option<Vec<String>>> = RwLock::new(None);
     static ref CFG_IS_LOOPED: AtomicBool = AtomicBool::new(false);
     static ref SONG_INDEX: AtomicUsize = AtomicUsize::new(0);
     static ref SONG_TOTAL_LEN: AtomicU64 = AtomicU64::new(0);
@@ -231,6 +232,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 SeekBackward => {
                     let _ = audio.sink.try_seek(audio.sink.get_pos().saturating_sub(std::time::Duration::from_secs(5)));
+                }
+                Shuffle => {
+                    let mut playlist = PLAYLIST.write().unwrap();
+                    if SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap().is_none() {
+                        // don't allocate extra memory for storing another copy of the playlist
+                        // initially.
+                        *SHUFFLE_ORIGINAL_PLAYLIST.write().unwrap() = Some(playlist.to_vec());
+                    }
+                    let shuffle_original_playlist = SHUFFLE_ORIGINAL_PLAYLIST.read().unwrap();
+                    let mut first_time = true;
+                    while *shuffle_original_playlist.as_ref().unwrap() == *playlist || first_time {
+                        first_time = false;
+                        encore::shuffle_playlist(&mut playlist);
+                    }
+                    drop(playlist); // audio.rejitter_song() will call another method that needs
+                                    // read access to `PLAYLIST`
+                                    // drop it to prevent deadlock.
+                    audio.rejitter_song();
                 }
                 _ => {
                     #[cfg(debug_assertions)]
