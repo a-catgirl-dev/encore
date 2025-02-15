@@ -23,13 +23,17 @@ pub struct TomlMain {
     /// `max_vol as f32 / 100.0`
     pub max_vol: i32,
     /// i32 value; to get a value that can be compared with Rodio's volume() method, do:
-    /// `max_vol as f32 / 100.0`
+    /// `min_vol as f32 / 100.0`
+    pub min_vol: i32,
+    /// i32 value; to get a value that can be compared with Rodio's volume() method, do:
+    /// `default_vol as f32 / 100.0`
     pub default_vol: i32,
 }
 impl Default for TomlMain {
     fn default() -> Self {
         Self {
             max_vol: 200,
+            min_vol: 0,
             default_vol: 100,
         }
     }

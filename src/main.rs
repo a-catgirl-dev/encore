@@ -216,6 +216,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
                 VolumeDown => {
                     let prev_vol = audio.sink.volume();
+                    if prev_vol <= cfg.main.min_vol.to_rodio() {
+                        continue;
+                    }
                     let request_vol = prev_vol - 0.1;
                     // no .saturating_sub for f32 cause primitive type, so we do this:
                     let normalized_vol = if request_vol < 0.0 { 0.0 } else { request_vol };
