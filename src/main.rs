@@ -168,6 +168,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut audio = song::Song::new();
     audio.play();
+    audio.sink.set_volume(cfg.main.default_vol.to_rodio());
     loop {
         let receive = main_rx.recv_timeout(Duration::from_secs(1));
         if let Ok(k) = receive {
