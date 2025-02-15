@@ -2,6 +2,16 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+pub trait IntegerExtensions {
+    fn to_rodio(self) -> f32;
+}
+
+impl IntegerExtensions for i32 {
+    fn to_rodio(self) -> f32 {
+        self as f32 / 100.0
+    }
+}
+
 #[derive(Debug, Copy, PartialEq)]
 /// don't Box<SongControl> this value, or you're going to have a very hard time with .clone()
 /// because it will panic.

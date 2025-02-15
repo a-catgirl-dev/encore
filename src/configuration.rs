@@ -6,8 +6,6 @@ use serde::Deserialize;
 // TODO: better toml name?
 #[cfg(target_os = "linux")]
 static DEFAULT_CFG_PATH: &str = ".config/encore/encore.toml";
-#[cfg(target_os = "windows")]
-static DEFAULT_CFG_PATH: &str = "AppData/Roaming/encore/encore.toml";
 #[cfg(target_os = "macos")]
 static DEFAULT_CFG_PATH: &str = "Library/Preferences/encore/encore.toml";
 
@@ -21,10 +19,18 @@ pub struct Config {
 #[derive(Debug)]
 #[cfg_attr(feature = "configuration", derive(Deserialize), serde(default))]
 pub struct TomlMain {
+    /// i32 value; to get a value that can be compared with Rodio's volume() method, do:
+    /// `max_vol as f32 / 100.0`
+    pub max_vol: i32,
+    /// i32 value; to get a value that can be compared with Rodio's volume() method, do:
+    /// `max_vol as f32 / 100.0`
+    pub default_vol: i32,
 }
 impl Default for TomlMain {
     fn default() -> Self {
         Self {
+            max_vol: 200,
+            default_vol: 100,
         }
     }
 }

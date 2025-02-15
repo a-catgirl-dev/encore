@@ -12,6 +12,7 @@ mod macros;
 
 use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering::Relaxed}, RwLock, mpsc::channel, Arc};
 use std::{io::BufReader, fs::File};
+use encore::IntegerExtensions;
 
 use threading::ThreadAbstraction;
 
@@ -65,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
 
-    let _cfg = configuration::Config::parse(&encore::ConfigurationPath::Default);
+    let cfg = configuration::Config::parse(&encore::ConfigurationPath::Default);
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
@@ -208,6 +209,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Resume => audio.play(),
                 VolumeUp => {
                     let prev_vol = audio.sink.volume();
+                    if prev_vol >= cfg.main.max_vol.to_rodio() {
+                        continue;
+                    }
                     audio.sink.set_volume(prev_vol + 0.1);
                 },
                 VolumeDown => {
