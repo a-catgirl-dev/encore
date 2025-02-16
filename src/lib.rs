@@ -162,11 +162,8 @@ mod tests {
     #[test]
     fn bogo_sort_without_verification() {
         // rust, please
-        let mut vec: Vec<String> = vec![];
-        for s in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"] {
-            let s = s.to_owned();
-            vec.push(s);
-        }
+        let vec: Vec<String> = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"]
+            .into_iter().map(String::from).collect();
         dbg!(&vec);
 
         // shuffle_playlist mutates the original output, so it doesn't allocate
