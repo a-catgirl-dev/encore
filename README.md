@@ -30,19 +30,21 @@ Because Encore runs in the terminal, Encore comes with vi-like keybindings. That
 Encore natively and will always support these platforms:
 
 - Linux;
-- ChromeOS;
+- ChromeOS
 
-Encore has support and tries to maintain support for these platforms:
+Encore will always support these platforms on offical releases:
 
-- MacOS
+- MacOS;
+- FreeBSD;
+- DragonFly BSD;
+- NetBSD
 
 Support is planned for the following platforms:
 
 - Android (via termux, unrooted?)
 
-Support is a hit or miss for the following "platform":
+> [!NOTE]
+> There is no Windows support, though in theory it may work. This will not hold true in future versions.[^1]
 
-- Windows 10/11[^1]
-
-[^1]: I don't care about Windows, and eventually I will make it **only** work on Unix-like platforms, such as Linux, MacOS, and possibly \*BSDs. The intent is to make the software **unusable on Windows**. A custom license clause will then be added to forbid the usage of the software on systems primilarly developed by Microsoft.
+[^1]: I don't care about Windows, and eventually I will make it **only** work on Unix-like platforms, such as Linux, MacOS, and \*BSDs. The intent is to make the software **unusable on Windows**. A custom license clause will then be added to forbid the usage of the software on systems primilarly developed by Microsoft.
 
