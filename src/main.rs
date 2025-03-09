@@ -10,9 +10,9 @@ mod mpris_handler;
 #[macro_use]
 mod macros;
 
-use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering::Relaxed}, mpsc::channel, Arc, Condvar, RwLock, Mutex};
+use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicU8, AtomicUsize, Ordering::Relaxed}, mpsc::channel, Arc, Condvar, RwLock, Mutex};
 use std::{io::BufReader, fs::File};
-use encore::IntegerExtensions;
+use encore::{IntegerExtensions, LoopMode};
 
 use threading::ThreadAbstraction;
 
@@ -23,10 +23,10 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 lazy_static::lazy_static!{
     static ref PLAYLIST: RwLock<Vec<String>> = Default::default();
     static ref SHUFFLE_ORIGINAL_PLAYLIST: RwLock<Option<Vec<String>>> = RwLock::new(None);
-    static ref CFG_IS_LOOPED: AtomicBool = AtomicBool::new(false);
     static ref SONG_INDEX: AtomicUsize = AtomicUsize::new(0);
     static ref SONG_TOTAL_LEN: AtomicU64 = AtomicU64::new(0);
     static ref SONG_CURRENT_LEN: AtomicU64 = AtomicU64::new(0);
+    static ref LOOP_MODE: AtomicU8 = AtomicU8::new(LoopMode::NoLoop as u8);
     static ref PAUSED: AtomicBool = AtomicBool::new(false);
     static ref VOLUME_LEVEL: encore::AtomicF32 = encore::AtomicF32::new(0.0);
 }
@@ -131,7 +131,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Ok(k) = receive {
                 match k {
                     DestroyAndExit => break, // the destructor will exit the alt buffer
-                    ToggleLoop => CFG_IS_LOOPED.store(!CFG_IS_LOOPED.load(Relaxed), Relaxed),
+                    ToggleLoop => {
+                        let loop_mode: LoopMode = LOOP_MODE.load(Relaxed).into();
+                        let next = loop_mode.next();
+                        LOOP_MODE.store(next as u8, Relaxed);
+                    }
                     _ => {
                         #[cfg(debug_assertions)]
                         eprintln!("the operation {k:?} is not applicable for rendering");
@@ -281,15 +285,40 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         if audio.sink.empty() {
+            fn playlist_over() -> bool {
+                SONG_INDEX.load(Relaxed) >= PLAYLIST.read().unwrap().len() - 1
+            }
+
+            fn last_song() -> bool {
+                SONG_INDEX.load(Relaxed) == PLAYLIST.read().unwrap().len()
+            }
+
             // FIXME: this is a little unclean, and may be hard to understand
             let song_index = SONG_INDEX.load(Relaxed);
-            if CFG_IS_LOOPED.load(Relaxed) {
-                audio.rejitter_song();
-                continue;
-            } else if song_index >= PLAYLIST.read().unwrap().len() - 1 { // playlist len always + 1 because math
+            let loop_mode = LOOP_MODE.load(Relaxed);
+            match loop_mode.into() {
+                LoopMode::CurrentSong => {
+                    audio.rejitter_song();
+                    continue;
+                }
+                LoopMode::CurrentPlaylist => {
+                    if playlist_over() {
+                        SONG_INDEX.store(0, Relaxed);
+                    } else if !last_song() {
+                        SONG_INDEX.store(song_index + 1, Relaxed);
+                    }
+                },
+                LoopMode::NoLoop => {
+                    if !last_song() {
+                        SONG_INDEX.store(song_index + 1, Relaxed);
+                    }
+                }
+            }
+
+            if playlist_over() {
                 send_control_errorless!(DestroyAndExit, audio_over_mtx);
             }
-            SONG_INDEX.store(song_index + 1, Relaxed);
+
             audio.rejitter_song();
         } else {
             sync_audio_data(&audio);
