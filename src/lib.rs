@@ -47,6 +47,33 @@ impl Clone for SongControl {
     }
 }
 
+pub enum LoopMode {
+    NoLoop = 0,
+    CurrentSong = 1,
+    CurrentPlaylist = 2,
+}
+
+impl From<u8> for LoopMode {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => LoopMode::NoLoop,
+            1 => LoopMode::CurrentSong,
+            2 => LoopMode::CurrentPlaylist,
+            _ => unimplemented!("Huh?"),
+        }
+    }
+}
+
+impl LoopMode {
+    pub fn next(&self) -> LoopMode {
+        match self {
+            LoopMode::NoLoop => LoopMode::CurrentSong,
+            LoopMode::CurrentSong => LoopMode::CurrentPlaylist,
+            LoopMode::CurrentPlaylist => LoopMode::NoLoop,
+        }
+    }
+}
+
 #[derive(PartialEq, Default)]
 pub enum RenderMode {
     Safe, // if term is too small, or if under resource constraints, or user specified, or
