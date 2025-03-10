@@ -5,7 +5,6 @@
 
 use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
-use crate::SONG_INDEX;
 use encore::RenderMode;
 
 macro_rules! not_enough_space {
@@ -98,6 +97,15 @@ impl Tui<'_> {
             RenderMode::Safe => self.__draw_safe()?,
             RenderMode::NoSpace => self.__draw_not_enough_space()?,
         }
+
+        self.render_misc_info();
+
+        Ok(())
+    }
+
+    fn render_misc_info(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let loop_mode: encore::LoopMode = crate::LOOP_MODE.load(Relaxed).into();
+        writeln!(self.handle, "Loop: {loop_mode}")?;
 
         Ok(())
     }
@@ -195,7 +203,7 @@ impl Tui<'_> {
         let songs = &crate::PLAYLIST.read().unwrap();
         if self.cursor_index_queue >= songs.len() {
             self.cursor_index_queue = songs.len() - 1;
-            SONG_INDEX.store(self.cursor_index_queue, Relaxed);
+            crate::SONG_INDEX.store(self.cursor_index_queue, Relaxed);
         }
         let song = songs[self.cursor_index_queue].split('/').last().unwrap_or("");
 
