@@ -67,6 +67,17 @@ impl From<u8> for LoopMode {
     }
 }
 
+impl std::fmt::Display for LoopMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let o = match self {
+            LoopMode::NoLoop => "Off",
+            LoopMode::CurrentSong => "Current Song",
+            LoopMode::CurrentPlaylist => "Current Playlist",
+        };
+        write!(f, "{o}")
+    }
+}
+
 impl LoopMode {
     pub fn next(&self) -> LoopMode {
         match self {
