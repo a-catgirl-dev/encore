@@ -29,6 +29,8 @@ lazy_static::lazy_static!{
     static ref LOOP_MODE: AtomicU8 = AtomicU8::new(LoopMode::NoLoop as u8);
     static ref PAUSED: AtomicBool = AtomicBool::new(false);
     static ref VOLUME_LEVEL: encore::AtomicF32 = encore::AtomicF32::new(0.0);
+
+    static ref CONFIG: RwLock<configuration::Config> = Default::default();
 }
 
 /// skip_num parameter for skipping the first n elements in the vec.
@@ -70,6 +72,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _profiler = dhat::Profiler::new_heap();
 
     let cfg = configuration::Config::parse(&encore::ConfigurationPath::Default);
+    *CONFIG.write().unwrap() = cfg.clone();
+    drop(cfg);
+    let cfg = CONFIG.read().unwrap();
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {

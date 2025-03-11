@@ -9,14 +9,15 @@ static DEFAULT_CFG_PATH: &str = ".config/encore/encore.toml";
 #[cfg(target_os = "macos")]
 static DEFAULT_CFG_PATH: &str = "Library/Preferences/encore/encore.toml";
 
-#[derive(Debug, Default)]
-#[cfg_attr(feature = "configuration", derive(Deserialize))]
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "configuration", derive(Deserialize), serde(default))]
 pub struct Config {
     pub main: TomlMain,
     pub playlist: TomlPlaylist,
+    pub keybinds: TomlKeybinds,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "configuration", derive(Deserialize), serde(default))]
 pub struct TomlMain {
     /// i32 value; to get a value that can be compared with Rodio's volume() method, do:
@@ -39,7 +40,7 @@ impl Default for TomlMain {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "configuration", derive(Deserialize), serde(default))]
 pub struct TomlPlaylist {
     pub never_use: bool,
@@ -52,6 +53,17 @@ impl Default for TomlPlaylist {
             highlighted_color: "f5c2e7".to_string(),
         }
     }
+}
+
+#[derive(Debug, Default, Clone)]
+#[cfg_attr(feature = "configuration", derive(Deserialize), serde(default))]
+pub struct TomlKeybinds {
+    pub toggle_loop: char,
+    pub prev_song: char,
+    pub next_song: char,
+    pub toggle_pause: char,
+    pub toggle_shuffle: char,
+    pub exit: char,
 }
 
 impl Config {
