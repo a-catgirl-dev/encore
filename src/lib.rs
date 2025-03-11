@@ -34,6 +34,9 @@ pub enum SongControl {
     ShuffleOn,
     ShuffleOff,
 
+    /// used to wake up all but the audio thread, and is an no-op
+    /// this is the case because then otherwise this command will be sent to all threads on repeat
+    /// and that is very likely not what you want.
     No,
 
     DestroyAndExit,

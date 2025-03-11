@@ -10,7 +10,7 @@ mod mpris_handler;
 #[macro_use]
 mod macros;
 
-use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicU8, AtomicUsize, Ordering::Relaxed}, mpsc::channel, Arc, RwLock};
+use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicU8, AtomicUsize, Ordering::Relaxed}, mpsc::channel, Arc, Condvar, RwLock, Mutex};
 use std::{io::BufReader, fs::File};
 use encore::{IntegerExtensions, LoopMode};
 
@@ -60,9 +60,11 @@ fn quit_with(e: &str, s: &str) -> Result<std::convert::Infallible, Box<dyn std::
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // use std::thread::spawn;
     use std::time::Duration;
     use encore::{SongControl::*, RenderMode, FileFormat};
+
+    let init_audio_ready  = Arc::new((Mutex::new(false), Condvar::new()));
+    let init_audio_ready2 = Arc::clone(&init_audio_ready);
 
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
@@ -113,6 +115,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (render_tx, render_rx) = channel();
     let render = ThreadAbstraction::spawn(move || {
+        {
+            let (lock, cvar) = &*init_audio_ready;
+            let mut ready = lock.lock().unwrap();
+            while !*ready {
+                ready = cvar.wait(ready).unwrap();
+            }
+        }
         let mut tui = tui::Tui::init()
             .with_rendering_mode(render_requested_mode);
         tui.enter_alt_buffer().unwrap();
@@ -174,6 +183,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut audio = song::Song::new();
     audio.play();
     audio.sink.set_volume(cfg.main.default_vol.to_rodio());
+    sync_audio_data(&audio);
+    {
+        let (lock, cvar) = &*init_audio_ready2;
+        let mut ready = lock.lock().unwrap();
+        *ready = true;
+        cvar.notify_one();
+    }
     loop {
         let receive = main_rx.recv_timeout(Duration::from_secs(1));
         if let Ok(k) = receive {
@@ -258,6 +274,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     // drop it to prevent deadlock.
                     audio.rejitter_song();
                 }
+                No => continue, // see SongControl::No's docstring
                 _ => {
                     #[cfg(debug_assertions)]
                     eprintln!("the operation {k:?} is not applicable for audio");
@@ -304,22 +321,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             audio.rejitter_song();
         } else {
-            // task: synchronise global variables based on what we have.
-
-            // there is a bug here: sometimes, this returns None.
-            // some mp3s work, but others don't. i dont know why precisely.
-            let total_dur = match audio.total_duration {
-                Some(n) => n.as_secs(),
-                None => 0,
-            };
-            SONG_CURRENT_LEN.store(audio.sink.get_pos().as_secs(), Relaxed);
-            SONG_TOTAL_LEN.store(total_dur, Relaxed);
-            PAUSED.store(audio.sink.is_paused(), Relaxed);
-
-            VOLUME_LEVEL.store(audio.sink.volume(), Relaxed);
+            sync_audio_data(&audio);
+            // wake up render thread now that the time song played et al may have changed.
+            send_control_errorless!(No, audio_over_mtx);
         }
     }
 
     Ok(())
+}
+
+fn sync_audio_data(audio: &song::Song) {
+    // there is a bug here: sometimes, this returns None.
+    // some mp3s work, but others don't. i dont know why precisely.
+
+    let total_dur = match audio.total_duration {
+        Some(n) => n.as_secs(),
+        None => 0,
+    };
+    SONG_CURRENT_LEN.store(audio.sink.get_pos().as_secs(), Relaxed);
+    SONG_TOTAL_LEN.store(total_dur, Relaxed);
+    PAUSED.store(audio.sink.is_paused(), Relaxed);
+
+    VOLUME_LEVEL.store(audio.sink.volume(), Relaxed);
 }
 
