@@ -5,7 +5,8 @@
 
 use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
-use encore::RenderMode;
+use encore::{RenderMode, LoopMode};
+use crate::{SONG_INDEX, PLAYLIST, SONG_CURRENT_LEN, SONG_TOTAL_LEN, VOLUME_LEVEL, LOOP_MODE};
 
 macro_rules! not_enough_space {
     ($tooey:expr) => {{
@@ -104,7 +105,7 @@ impl Tui<'_> {
     }
 
     fn render_misc_info(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let loop_mode: encore::LoopMode = crate::LOOP_MODE.load(Relaxed).into();
+        let loop_mode: LoopMode = LOOP_MODE.load(Relaxed).into();
         writeln!(self.handle, "Loop: {loop_mode}")?;
 
         Ok(())
@@ -113,7 +114,7 @@ impl Tui<'_> {
     fn __calculate_offset(&mut self) {
         if self.cursor_index_queue >= (self.height as usize).saturating_sub(13) + self.scrolling_offset {
             // HACK: if last element in playlist, don't increment the offset
-            if self.cursor_index_queue + 1 + self.scrolling_offset == crate::PLAYLIST.read().unwrap().len() {
+            if self.cursor_index_queue + 1 + self.scrolling_offset == PLAYLIST.read().unwrap().len() {
                 return;
             }
             self.scrolling_offset += 1;
@@ -124,7 +125,7 @@ impl Tui<'_> {
     }
 
     fn __draw_full(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let songs = &crate::PLAYLIST.read().unwrap();
+        let songs = &PLAYLIST.read().unwrap();
 
         if self.cursor_index_queue >= songs.len() {
             // wrap back to the size of songs; the user is trying to access songs.len() + 1
@@ -200,17 +201,17 @@ impl Tui<'_> {
     }
 
     fn __draw_safe(&mut self) -> Result<(), std::io::Error> {
-        let songs = &crate::PLAYLIST.read().unwrap();
+        let songs = &PLAYLIST.read().unwrap();
         if self.cursor_index_queue >= songs.len() {
             self.cursor_index_queue = songs.len() - 1;
-            crate::SONG_INDEX.store(self.cursor_index_queue, Relaxed);
+            SONG_INDEX.store(self.cursor_index_queue, Relaxed);
         }
         let song = songs[self.cursor_index_queue].split('/').last().unwrap_or("");
 
         writeln!(self.handle, "{song}");
-        let current_len = format_time(crate::SONG_CURRENT_LEN.load(Relaxed));
-        let total_len = format_time(crate::SONG_TOTAL_LEN.load(Relaxed));
-        let vol = f32_to_percent(crate::VOLUME_LEVEL.load(Relaxed));
+        let current_len = format_time(SONG_CURRENT_LEN.load(Relaxed));
+        let total_len = format_time(SONG_TOTAL_LEN.load(Relaxed));
+        let vol = f32_to_percent(VOLUME_LEVEL.load(Relaxed));
         writeln!(self.handle, "{current_len} / {total_len}");
         writeln!(self.handle, "󰕾 {vol}%");
 
