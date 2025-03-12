@@ -55,7 +55,7 @@ impl Default for TomlPlaylist {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "configuration", derive(Deserialize), serde(default))]
 pub struct TomlKeybinds {
     pub toggle_loop: char,
@@ -64,6 +64,18 @@ pub struct TomlKeybinds {
     pub toggle_pause: char,
     pub toggle_shuffle: char,
     pub exit: char,
+}
+impl Default for TomlKeybinds {
+    fn default() -> Self {
+        Self {
+            toggle_loop: 'r',
+            prev_song: 'k',
+            next_song: 'j',
+            toggle_pause: ' ',
+            toggle_shuffle: 's',
+            exit: 'q',
+        }
+    }
 }
 
 impl Config {
