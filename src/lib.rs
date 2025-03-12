@@ -12,7 +12,7 @@ impl IntegerExtensions for i32 {
     }
 }
 
-#[derive(Debug, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// don't Box<SongControl> this value, or you're going to have a very hard time with .clone()
 /// because it will panic.
 /// :troll:
@@ -42,12 +42,6 @@ pub enum SongControl {
     DestroyAndExit,
 
     Unset,
-}
-
-impl Clone for SongControl {
-    fn clone(&self) -> Self {
-        panic!("why are we on the heap???");
-    }
 }
 
 pub enum LoopMode {
