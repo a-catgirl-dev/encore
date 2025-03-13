@@ -92,7 +92,7 @@ impl Config {
             encore::ConfigurationPath::Custom(s) => s
         };
         #[allow(deprecated)]
-        let file = format!("{}/{}", std::env::home_dir().unwrap().to_string_lossy().to_string(), file);
+        let file = format!("{}/{}", std::env::home_dir().unwrap().to_string_lossy(), file);
 
         let buf = read_to_string(file).unwrap();
 
