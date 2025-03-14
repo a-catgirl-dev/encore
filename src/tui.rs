@@ -174,7 +174,7 @@ impl Tui<'_> {
                 continue;
             }
 
-            let line = songs[i + self.scrolling_offset].split('/').last().unwrap_or("");
+            let line = songs[i + self.scrolling_offset].split('/').next_back().unwrap_or("");
             let mut entry: String = String::with_capacity(self.width.into());
             if i == self.cursor_index_queue {
                 entry.push_str(&self.draw_highlighted_entry(line)?);
@@ -185,7 +185,7 @@ impl Tui<'_> {
         }
         write!(self.handle, "{closing_box}");
 
-        let line = songs[self.cursor_index_queue + self.scrolling_offset].split('/').last().unwrap_or("");
+        let line = songs[self.cursor_index_queue + self.scrolling_offset].split('/').next_back().unwrap_or("");
         let line = self.draw_entry_centered(line)?;
         // playback bar
         write!(self.handle, "{opening_box1}");
