@@ -175,6 +175,7 @@ impl Tui<'_> {
             }
 
             let line = songs[i + self.scrolling_offset].split('/').next_back().unwrap_or("");
+            let line = &ellipsize(line, self.width as usize - 2, EllipsizeMode::End);
             let mut entry: String = String::with_capacity(self.width.into());
             if i == self.cursor_index_queue {
                 entry.push_str(&self.draw_highlighted_entry(line)?);
@@ -186,6 +187,7 @@ impl Tui<'_> {
         write!(self.handle, "{closing_box}");
 
         let line = songs[self.cursor_index_queue + self.scrolling_offset].split('/').next_back().unwrap_or("");
+        let line = &ellipsize(line, self.width as usize - 2, EllipsizeMode::End);
         let line = self.draw_entry_centered(line)?;
         // playback bar
         write!(self.handle, "{opening_box1}");
@@ -340,6 +342,36 @@ fn draw_box<const CLOSING: bool>(text: &str, term_len: u16) -> String {
         format!("{first}{text}{trailing}{closing}")
     } else {
         format!("{first}{trailing}{closing}")
+    }
+}
+
+#[allow(unused)] // TODO: these are marked as unused as of right now, because EllipsizeMode::End is
+                 // hardcoded.
+enum EllipsizeMode {
+    Beginning,
+    Middle,
+    End,
+}
+
+fn ellipsize(s: &str, max_len: usize, mode: EllipsizeMode) -> String {
+    if s.len() <= max_len {
+        return s.to_string();
+    }
+
+    let ellipsis = "...";
+    let ellipsis_len = ellipsis.len();
+
+    if max_len <= ellipsis_len {
+        return ellipsis.to_string();
+    }
+
+    match mode {
+        EllipsizeMode::Beginning => format!("{}{}", ellipsis, &s[(s.len() - max_len + ellipsis_len)..]),
+        EllipsizeMode::Middle => {
+            let part_len = (max_len - ellipsis_len) / 2;
+            format!("{}{}{}", &s[..part_len], ellipsis, &s[s.len() - part_len..])
+        }
+        EllipsizeMode::End => format!("{}{}", &s[..max_len - ellipsis_len], ellipsis),
     }
 }
 
