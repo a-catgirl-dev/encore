@@ -96,7 +96,10 @@ impl Tui<'_> {
         match self.rendering_mode {
             RenderMode::Full => self.__draw_full()?,
             RenderMode::Safe => self.__draw_safe()?,
-            RenderMode::NoSpace => self.__draw_not_enough_space()?,
+            RenderMode::NoSpace => {
+                self.__draw_safe()?;
+                self.render_set_mode(RenderMode::Full);
+            }
         }
 
         self.render_misc_info();
@@ -149,11 +152,11 @@ impl Tui<'_> {
         // currently selected song. subtract it now.
         // i will give you a hug if you find out why that is, and a workaround that isn't this ugly.
         self.cursor_index_queue = self.cursor_index_queue.saturating_sub(self.scrolling_offset);
-        let times = (self.height as usize - 12) + self.scrolling_offset;
+        let times = (self.height as usize).saturating_sub(12) + self.scrolling_offset;
         // 0 also works, but it seems to switch between 1 and 0, so bail on 1
         // the terminal won't appear empty in that case, but with only one entry
         // i think that's fair.
-        if times == 1 {
+        if times <= 2 {
             not_enough_space!(self); // should this be reached, the terminal's height is not large
                                      // enough, and the playlist will appear empty... and also the
                                      // current playing song indicator will be alternating between
@@ -244,15 +247,7 @@ impl Tui<'_> {
     fn draw_entry_centered(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
         let padding = 0;
 
-        let pad_len = match self.width.checked_sub(text.len().try_into().unwrap()) {
-            Some(n) => {
-                match n.checked_sub(2) {
-                    Some(n) => (n / 2) as usize,
-                    None => not_enough_space!(self),
-                }
-            },
-            None => not_enough_space!(self),
-        };
+        let pad_len = self.width as usize - text.len();
         let mut ntext = String::with_capacity((self.width - 2).into());
 
         // :(
@@ -281,22 +276,17 @@ impl Tui<'_> {
 
     fn draw_entry(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
         let width = self.width as usize;
-        let padding = width.checked_sub(text.len() + 2);
-        if padding.is_none() {
-            not_enough_space!(self);
-        }
-        Ok(box_draw_entry(text, padding.unwrap()))
+        let padding = width - (text.len() + 2);
+
+        Ok(box_draw_entry(text, padding))
     }
 
     fn draw_highlighted_entry(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
         let width = self.width as usize;
-        let padding = width.checked_sub(text.len() + 2);
-        if padding.is_none() {
-            not_enough_space!(self);
-        }
+        let padding = width - (text.len() + 2);
 
         let out = format!("\x1B[48;2;245;194;231m\x1B[38;2;30;30;46m{text}");
-        Ok(box_draw_entry(&out, padding.unwrap()))
+        Ok(box_draw_entry(&out, padding))
     }
 }
 
