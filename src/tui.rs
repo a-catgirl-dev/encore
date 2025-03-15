@@ -211,7 +211,7 @@ impl Tui<'_> {
             self.cursor_index_queue = songs.len() - 1;
             SONG_INDEX.store(self.cursor_index_queue, Relaxed);
         }
-        let song = songs[self.cursor_index_queue].split('/').last().unwrap_or("");
+        let song = songs[self.cursor_index_queue].split('/').next_back().unwrap_or("");
 
         writeln!(self.handle, "{song}");
         let current_len = format_time(SONG_CURRENT_LEN.load(Relaxed));
