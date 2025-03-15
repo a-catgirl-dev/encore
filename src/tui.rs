@@ -247,7 +247,8 @@ impl Tui<'_> {
     fn draw_entry_centered(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
         let padding = 0;
 
-        let pad_len = self.width as usize - text.len();
+        let pad_len = ((self.width as usize - text.len()) - 2) / 2;
+
         let mut ntext = String::with_capacity((self.width - 2).into());
 
         // :(
