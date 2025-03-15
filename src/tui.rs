@@ -5,7 +5,7 @@
 
 use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
-use encore::{RenderMode, LoopMode};
+use encore::{RenderMode, LoopMode, EllipsizeMode};
 use crate::{SONG_INDEX, PLAYLIST, SONG_CURRENT_LEN, SONG_TOTAL_LEN, VOLUME_LEVEL, LOOP_MODE};
 
 macro_rules! not_enough_space {
@@ -19,6 +19,7 @@ macro_rules! not_enough_space {
 pub struct Tui<'a> {
     handle: BufWriter<StdoutLock<'a>>,
     rendering_mode: RenderMode,
+    ellipsis_mode: encore::EllipsizeMode,
 
     width: u16,
     height: u16,
@@ -38,9 +39,12 @@ impl Tui<'_> {
         // switch, so increases overhead on the system itself), we buffer the stdout.
         let handle = BufWriter::new(stdout);
 
+        let ellipsis_mode = crate::CONFIG.read().unwrap().playlist.ellipsis_mode;
+
         Tui {
             handle,
             rendering_mode: RenderMode::default(),
+            ellipsis_mode,
             width: 0,
             height: 0,
             scrolling_offset: 0,
@@ -178,7 +182,7 @@ impl Tui<'_> {
             }
 
             let line = songs[i + self.scrolling_offset].split('/').next_back().unwrap_or("");
-            let line = &ellipsize(line, self.width as usize - 2, EllipsizeMode::End);
+            let line = &ellipsize(line, self.width as usize - 2, self.ellipsis_mode);
             let mut entry: String = String::with_capacity(self.width.into());
             if i == self.cursor_index_queue {
                 entry.push_str(&self.draw_highlighted_entry(line)?);
@@ -190,7 +194,7 @@ impl Tui<'_> {
         write!(self.handle, "{closing_box}");
 
         let line = songs[self.cursor_index_queue + self.scrolling_offset].split('/').next_back().unwrap_or("");
-        let line = &ellipsize(line, self.width as usize - 4, EllipsizeMode::End);
+        let line = &ellipsize(line, self.width as usize - 4, self.ellipsis_mode);
         let line = self.draw_entry_centered(line);
         // playback bar
         write!(self.handle, "{opening_box1}");
@@ -325,15 +329,7 @@ fn draw_box<const CLOSING: bool>(text: &str, term_len: u16) -> String {
     }
 }
 
-#[allow(unused)] // TODO: these are marked as unused as of right now, because EllipsizeMode::End is
-                 // hardcoded.
-enum EllipsizeMode {
-    Beginning,
-    Middle,
-    End,
-}
-
-fn ellipsize(s: &str, max_len: usize, mode: EllipsizeMode) -> String {
+fn ellipsize(s: &str, max_len: usize, mode: encore::EllipsizeMode) -> String {
     if s.len() <= max_len {
         return s.to_string();
     }

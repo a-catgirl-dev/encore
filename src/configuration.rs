@@ -45,12 +45,14 @@ impl Default for TomlMain {
 pub struct TomlPlaylist {
     pub never_use: bool,
     pub highlighted_color: String,
+    pub ellipsis_mode: encore::EllipsizeMode,
 }
 impl Default for TomlPlaylist {
     fn default() -> Self {
         Self {
             never_use: false,
             highlighted_color: "f5c2e7".to_string(),
+            ellipsis_mode: encore::EllipsizeMode::End,
         }
     }
 }
