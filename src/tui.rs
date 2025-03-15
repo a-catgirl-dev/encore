@@ -190,8 +190,8 @@ impl Tui<'_> {
         write!(self.handle, "{closing_box}");
 
         let line = songs[self.cursor_index_queue + self.scrolling_offset].split('/').next_back().unwrap_or("");
-        let line = &ellipsize(line, self.width as usize - 2, EllipsizeMode::End);
-        let line = self.draw_entry_centered(line)?;
+        let line = &ellipsize(line, self.width as usize - 4, EllipsizeMode::End);
+        let line = self.draw_entry_centered(line);
         // playback bar
         write!(self.handle, "{opening_box1}");
         write!(self.handle, "{line}");
@@ -244,35 +244,24 @@ impl Tui<'_> {
         Ok(())
     }
 
-    fn draw_entry_centered(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let padding = 0;
+    fn draw_entry_centered(&mut self, text: &str) -> String {
+        let width = self.width as usize - 2;
 
-        let pad_len = ((self.width as usize - text.len()) - 2) / 2;
-
-        let mut ntext = String::with_capacity((self.width - 2).into());
-
-        // :(
-        // to see why this is here, run this on a terminal whose width is 84 chars with the song
-        // name:
-        // /home/william/Desktop/encorets_audio/badapple.mp3
-        // TODO: get rid of this somehow
-        if text.len() % 2 == 0 && self.width % 2 == 0 {
-            ntext.push_str(&" ".repeat(pad_len - 2));
-        } else {
-            ntext.push_str(&" ".repeat(pad_len));
-        }
-        // put this here to hopefully center the text if both self.width and text.len's remainders
-        // after a division of 2 equal 0
-        if text.len() % 2 == 0 {
-            ntext.push(' ');
-        }
-        ntext.push_str(text);
-        ntext.push_str(&" ".repeat(pad_len));
-        if self.width % 2 == 0 {
-            ntext.push(' ');
+        if text.len() >= width - 1 {
+            return text.to_string();
         }
 
-        Ok(box_draw_entry(&ntext, padding))
+        let total_pad = width - text.len();
+        let left_pad  = total_pad / 2;
+        let right_pad = total_pad - left_pad;
+
+        let text = format!("{}{}{}",
+            " ".repeat(left_pad),
+            text,
+            " ".repeat(right_pad)
+        );
+
+        box_draw_entry(&text, 0)
     }
 
     fn draw_entry(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
