@@ -155,6 +155,14 @@ pub fn trim_path(s: &str) -> &str {
     s.split('/').last().unwrap_or("")
 }
 
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "configuration", derive(serde::Deserialize), serde(rename_all = "lowercase"))]
+pub enum EllipsizeMode {
+    Beginning,
+    Middle,
+    End,
+}
+
 pub fn shuffle_playlist(input: &mut [String]) {
     fn bogo_sort<T>(slice: &mut [T])
     where 
