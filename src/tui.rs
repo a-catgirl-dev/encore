@@ -7,6 +7,7 @@ use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
 use encore::{RenderMode, LoopMode, EllipsizeMode};
 use crate::{SONG_INDEX, PLAYLIST, SONG_CURRENT_LEN, SONG_TOTAL_LEN, VOLUME_LEVEL, LOOP_MODE};
+use unicode_width::UnicodeWidthStr;
 
 macro_rules! not_enough_space {
     ($tooey:expr) => {{
@@ -251,11 +252,13 @@ impl Tui<'_> {
     fn draw_entry_centered(&mut self, text: &str) -> String {
         let width = self.width as usize - 2;
 
-        if text.len() >= width - 1 {
+        let text_len = UnicodeWidthStr::width(text);
+
+        if text_len >= width - 1 {
             return text.to_string();
         }
 
-        let total_pad = width - text.len();
+        let total_pad = width - text_len;
         let left_pad  = total_pad / 2;
         let right_pad = total_pad - left_pad;
 
@@ -269,15 +272,19 @@ impl Tui<'_> {
     }
 
     fn draw_entry(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let text_len = UnicodeWidthStr::width(text);
+
         let width = self.width as usize;
-        let padding = width - (text.len() + 2);
+        let padding = width - (text_len + 2);
 
         Ok(box_draw_entry(text, padding))
     }
 
     fn draw_highlighted_entry(&mut self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let text_len = UnicodeWidthStr::width(text);
+
         let width = self.width as usize;
-        let padding = width - (text.len() + 2);
+        let padding = width - (text_len + 2);
 
         let out = format!("\x1B[48;2;245;194;231m\x1B[38;2;30;30;46m{text}");
         Ok(box_draw_entry(&out, padding))
@@ -330,7 +337,8 @@ fn draw_box<const CLOSING: bool>(text: &str, term_len: u16) -> String {
 }
 
 fn ellipsize(s: &str, max_len: usize, mode: encore::EllipsizeMode) -> String {
-    if s.len() <= max_len {
+    let text_len = UnicodeWidthStr::width(s);
+    if text_len <= max_len {
         return s.to_string();
     }
 
@@ -342,10 +350,10 @@ fn ellipsize(s: &str, max_len: usize, mode: encore::EllipsizeMode) -> String {
     }
 
     match mode {
-        EllipsizeMode::Beginning => format!("{}{}", ellipsis, &s[(s.len() - max_len + ellipsis_len)..]),
+        EllipsizeMode::Beginning => format!("{}{}", ellipsis, &s[(text_len - max_len + ellipsis_len)..]),
         EllipsizeMode::Middle => {
             let part_len = (max_len - ellipsis_len) / 2;
-            format!("{}{}{}", &s[..part_len], ellipsis, &s[s.len() - part_len..])
+            format!("{}{}{}", &s[..part_len], ellipsis, &s[text_len - part_len..])
         }
         EllipsizeMode::End => format!("{}{}", &s[..max_len - ellipsis_len], ellipsis),
     }
