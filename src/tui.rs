@@ -3,6 +3,7 @@
 
 #![allow(unused_must_use)]
 
+use std::char;
 use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
 use encore::{RenderMode, LoopMode, EllipsizeMode};
@@ -284,7 +285,7 @@ impl Tui<'_> {
         let text_len = UnicodeWidthStr::width(text);
 
         let width = self.width as usize;
-        let padding = width - (text_len + 2);
+        let padding = width.saturating_sub(text_len + 2);
 
         let out = format!("\x1B[48;2;245;194;231m\x1B[38;2;30;30;46m{text}");
         Ok(box_draw_entry(&out, padding))
@@ -337,6 +338,21 @@ fn draw_box<const CLOSING: bool>(text: &str, term_len: u16) -> String {
 }
 
 fn ellipsize(s: &str, max_len: usize, mode: encore::EllipsizeMode) -> String {
+    /// first argument is the string to ellipsize, max_len is its maximum length.
+    fn lengthof(s: &str, max_len: usize) -> String {
+        s.chars()
+            .scan(0, |acc, c| {
+                let char_width = UnicodeWidthStr::width(c.to_string().as_str());
+                *acc += char_width;
+                if *acc > max_len {
+                    None
+                } else {
+                    Some(c)
+                }
+            })
+            .collect()
+    }
+
     let text_len = UnicodeWidthStr::width(s);
     if text_len <= max_len {
         return s.to_string();
@@ -345,17 +361,28 @@ fn ellipsize(s: &str, max_len: usize, mode: encore::EllipsizeMode) -> String {
     let ellipsis = "...";
     let ellipsis_len = ellipsis.len();
 
-    if max_len <= ellipsis_len {
-        return ellipsis.to_string();
-    }
+    let max_len = match max_len.checked_sub(ellipsis_len) {
+        Some(n) => n,
+        None => return ellipsis.to_string(),
+    };
 
     match mode {
-        EllipsizeMode::Beginning => format!("{}{}", ellipsis, &s[(text_len - max_len + ellipsis_len)..]),
-        EllipsizeMode::Middle => {
-            let part_len = (max_len - ellipsis_len) / 2;
-            format!("{}{}{}", &s[..part_len], ellipsis, &s[text_len - part_len..])
+        EllipsizeMode::Beginning => {
+            let ellipsized = lengthof(s, max_len);
+            format!("{}{}", ellipsis, ellipsized.chars().rev().collect::<String>())
         }
-        EllipsizeMode::End => format!("{}{}", &s[..max_len - ellipsis_len], ellipsis),
+        EllipsizeMode::Middle => {
+            let half_width = max_len / 2;
+
+            let start = lengthof(s, half_width);
+            let end = lengthof(s, half_width);
+
+            format!("{}{}{}", start, ellipsis, end.chars().rev().collect::<String>())
+        }
+        EllipsizeMode::End => {
+            let ellipsized = lengthof(s, max_len);
+            format!("{}{}", ellipsized, ellipsis)
+        }
     }
 }
 
