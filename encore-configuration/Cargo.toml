@@ -1,0 +1,13 @@
+[package]
+name = "encore-configuration"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+encore-shared = { path = "../encore-shared" }
+
+basic-toml = { version = "0.1.9", optional = true }
+serde = { version = "1.0.210", optional = true, features = ["serde_derive"] }
+
+[features]
+configuration = [ "basic-toml", "serde" ]

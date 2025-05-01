@@ -1,7 +1,6 @@
 mod song;
 mod input;
 mod tui;
-mod configuration;
 mod threading;
 
 mod mpris_handler;
@@ -29,7 +28,7 @@ lazy_static::lazy_static!{
     static ref PAUSED: AtomicBool = AtomicBool::new(false);
     static ref VOLUME_LEVEL: encore_shared::AtomicF32 = encore_shared::AtomicF32::new(0.0);
 
-    static ref CONFIG: RwLock<configuration::Config> = Default::default();
+    static ref CONFIG: RwLock<encore_configuration::Config> = Default::default();
 }
 
 fn quit_with(e: &str, s: &str) -> Result<std::convert::Infallible, Box<dyn std::error::Error>> {
@@ -47,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
 
-    let cfg = configuration::Config::parse(&ConfigurationPath::Default);
+    let cfg = encore_configuration::Config::parse(&ConfigurationPath::Default);
     *CONFIG.write().unwrap() = cfg.clone();
     drop(cfg);
     let cfg = CONFIG.read().unwrap();

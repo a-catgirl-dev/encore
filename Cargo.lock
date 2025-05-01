@@ -977,6 +977,7 @@ version = "0.2.0-canary.3"
 dependencies = [
  "basic-toml",
  "dhat",
+ "encore-configuration",
  "encore-playlist",
  "encore-shared",
  "getch-rs",
@@ -986,6 +987,15 @@ dependencies = [
  "souvlaki",
  "terminal_size 0.3.0",
  "unicode-width 0.2.0",
+]
+
+[[package]]
+name = "encore-configuration"
+version = "0.1.0"
+dependencies = [
+ "basic-toml",
+ "encore-shared",
+ "serde",
 ]
 
 [[package]]

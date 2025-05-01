@@ -9,10 +9,11 @@ license = "MIT OR Apache-2.0"
 [workspace]
 resolver = "2"
 # `encore-*` instead?
-members = [ "encore-playlist", "encore-shared" ]
+members = [ "encore-configuration", "encore-playlist", "encore-shared" ]
 
 [dependencies]
 # encore workspace
+encore-configuration = { path = "encore-configuration" }
 encore-playlist = { path = "encore-playlist" }
 encore-shared = { path = "encore-shared" }
 
