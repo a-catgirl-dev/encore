@@ -1,4 +1,4 @@
-use encore::SongControl;
+use encore_shared::SongControl;
 use getch_rs::{Getch, Key};
 
 pub struct Input(Getch);

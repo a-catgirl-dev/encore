@@ -1,10 +1,10 @@
 use std::sync::{mpsc, Arc};
 
-type Tx = Arc<mpsc::Sender<encore::SongControl>>;
+type Tx = Arc<mpsc::Sender<encore_shared::SongControl>>;
 
 #[cfg(feature = "mpris")]
 mod inner {
-    use encore::SongControl;
+    use encore_shared::SongControl;
     use souvlaki::{MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition, PlatformConfig};
     use std::time::Duration;
     use std::sync::atomic::Ordering;
@@ -42,7 +42,7 @@ mod inner {
             let title = crate::PLAYLIST.read().unwrap();
 
             let metadata = MediaMetadata {
-                title: Some(encore::trim_path(&title[song_index])),
+                title: Some(encore_shared::trim_path(&title[song_index])),
                 album: None, // TODO: playlist name
                 artist: None, // TODO: implement artist readout
                 duration: Some(total_song_len),
@@ -72,7 +72,7 @@ mod inner {
         }
     }
 
-    pub fn on_media_event(ev: MediaControlEvent, tx: Arc<mpsc::Sender<encore::SongControl>>) {
+    pub fn on_media_event(ev: MediaControlEvent, tx: Arc<mpsc::Sender<encore_shared::SongControl>>) {
         use souvlaki::MediaControlEvent;
 
         let r = match ev {

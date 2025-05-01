@@ -1,0 +1,8 @@
+[package]
+name = "encore-playlist"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+encore-shared = { path = "../encore-shared" }
+

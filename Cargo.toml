@@ -6,7 +6,18 @@ version = "0.2.0-canary.3"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
+[workspace]
+resolver = "2"
+# `encore-*` instead?
+members = [ "encore-playlist", "encore-shared" ]
+
 [dependencies]
+# encore workspace
+encore-playlist = { path = "encore-playlist" }
+encore-shared = { path = "encore-shared" }
+
+# external dependencies
+# TODO: put in places where it is used
 getch-rs = "=0.2.0"
 lazy_static = "1.5.0"
 terminal_size = { version = "0.3.0", default-features = false }
@@ -43,7 +54,7 @@ strip = false
 
 [features]
 default = [ "mpris" ]
-configuration = [ "basic-toml", "serde" ]
+configuration = [ "basic-toml", "serde", "encore-shared/configuration" ]
 dhat-heap = [ "dhat" ]
 mpris = [ "souvlaki" ]
 

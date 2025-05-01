@@ -3,10 +3,9 @@
 
 #![allow(unused_must_use)]
 
-use std::char;
 use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
-use encore::{RenderMode, LoopMode, EllipsizeMode};
+use encore_shared::{RenderMode, LoopMode, EllipsizeMode};
 use crate::{SONG_INDEX, PLAYLIST, SONG_CURRENT_LEN, SONG_TOTAL_LEN, VOLUME_LEVEL, LOOP_MODE};
 use unicode_width::UnicodeWidthStr;
 
@@ -21,7 +20,7 @@ macro_rules! not_enough_space {
 pub struct Tui<'a> {
     handle: BufWriter<StdoutLock<'a>>,
     rendering_mode: RenderMode,
-    ellipsis_mode: encore::EllipsizeMode,
+    ellipsis_mode: EllipsizeMode,
 
     width: u16,
     height: u16,
@@ -337,7 +336,7 @@ fn draw_box<const CLOSING: bool>(text: &str, term_len: u16) -> String {
     }
 }
 
-fn ellipsize(s: &str, max_len: usize, mode: encore::EllipsizeMode) -> String {
+fn ellipsize(s: &str, max_len: usize, mode: EllipsizeMode) -> String {
     /// first argument is the string to ellipsize, max_len is its maximum length.
     fn lengthof(s: &str, max_len: usize) -> String {
         s.chars()

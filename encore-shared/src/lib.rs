@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub trait IntegerExtensions {
@@ -216,4 +214,5 @@ mod tests {
         assert!(vec != output, "You probably got astronomically (un)lucky: bogo sort returned _the exact same_ results");
     }
 }
+
 

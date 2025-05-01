@@ -1,7 +1,6 @@
 mod song;
 mod input;
 mod tui;
-mod file_format;
 mod configuration;
 mod threading;
 
@@ -12,7 +11,7 @@ mod macros;
 
 use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicU8, AtomicUsize, Ordering::Relaxed}, mpsc::channel, Arc, Condvar, RwLock, Mutex};
 use std::{io::BufReader, fs::File};
-use encore::{IntegerExtensions, LoopMode};
+use encore_shared::{IntegerExtensions, LoopMode};
 
 use threading::ThreadAbstraction;
 
@@ -28,32 +27,9 @@ lazy_static::lazy_static!{
     static ref SONG_CURRENT_LEN: AtomicU64 = AtomicU64::new(0);
     static ref LOOP_MODE: AtomicU8 = AtomicU8::new(LoopMode::NoLoop as u8);
     static ref PAUSED: AtomicBool = AtomicBool::new(false);
-    static ref VOLUME_LEVEL: encore::AtomicF32 = encore::AtomicF32::new(0.0);
+    static ref VOLUME_LEVEL: encore_shared::AtomicF32 = encore_shared::AtomicF32::new(0.0);
 
     static ref CONFIG: RwLock<configuration::Config> = Default::default();
-}
-
-/// skip_num parameter for skipping the first n elements in the vec.
-/// needed cuz ./encore 1.mp3 will make argv = ["encore", "1.mp3"], and try to parse argv[0] = "encore"
-fn parse_playlist(file: &Vec<String>, skip_num: usize) -> Result<(), Box<dyn std::error::Error>> {
-    let mut lines = PLAYLIST.write().unwrap();
-    for s in file.iter()
-        .skip(skip_num)
-        .by_ref()
-    {
-        let f = if let Ok(k) = File::open(s) { k } else {
-            eprintln!("{s} doesn't exist");
-            continue
-        };
-        let mut f = BufReader::new(f);
-        if file_format::check_file(&mut f)? != encore::FileFormat::Audio {
-            eprintln!("Removing {s} from playlist: not audio file. skipping...");
-            continue;
-        }
-        lines.push(s.to_owned());
-    }
-
-    Ok(())
 }
 
 fn quit_with(e: &str, s: &str) -> Result<std::convert::Infallible, Box<dyn std::error::Error>> {
@@ -63,7 +39,7 @@ fn quit_with(e: &str, s: &str) -> Result<std::convert::Infallible, Box<dyn std::
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::time::Duration;
-    use encore::{SongControl::*, RenderMode, FileFormat};
+    use encore_shared::{SongControl::*, RenderMode, FileFormat, ConfigurationPath, normalize, to_vec, normalize_line};
 
     let init_audio_ready  = Arc::new((Mutex::new(false), Condvar::new()));
     let init_audio_ready2 = Arc::clone(&init_audio_ready);
@@ -71,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
 
-    let cfg = configuration::Config::parse(&encore::ConfigurationPath::Default);
+    let cfg = configuration::Config::parse(&ConfigurationPath::Default);
     *CONFIG.write().unwrap() = cfg.clone();
     drop(cfg);
     let cfg = CONFIG.read().unwrap();
@@ -83,25 +59,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut render_requested_mode = RenderMode::default();
 
-    if args.len() == 2 {
-        let mut first_arg = if let Some(s) = encore::normalize_line(&args[1]) { BufReader::new(File::open(s)?) }
-        else {
-            quit_with("No such file or directory", "argv[1] not found.")?;
-            unreachable!("quit_with must quit")
-        };
-        match file_format::check_file(&mut first_arg).unwrap() {
-            FileFormat::Audio => {
-                let playlist = encore::normalize(&mut args.into_iter());
-                parse_playlist(&playlist, 1).unwrap();
+    {
+        let mut playlist = PLAYLIST.write().unwrap();
+        if args.len() == 2 {
+            let mut first_arg = if let Some(s) = normalize_line(&args[1]) { BufReader::new(File::open(s)?) }
+            else {
+                quit_with("No such file or directory", "argv[1] not found.")?;
+                unreachable!("quit_with must quit")
+            };
+            match encore_playlist::file_format::check_file(&mut first_arg).unwrap() {
+                FileFormat::Audio => {
+                    let normalized = normalize(&mut args.into_iter());
+                    *playlist = encore_playlist::parse_playlist(&normalized, 1).unwrap();
+                }
+                FileFormat::Other => {
+                    let normalized = to_vec(&mut first_arg).expect("valid utf8");
+                    *playlist = encore_playlist::parse_playlist(&normalized, 0).unwrap();
+                }
             }
-            FileFormat::Other => {
-                let possible_playlist = encore::to_vec(&mut first_arg).expect("valid utf8");
-                parse_playlist(&possible_playlist, 0).unwrap();
-            }
+        } else {
+            let file = normalize(&mut args.into_iter());
+            *playlist = encore_playlist::parse_playlist(&file, 1).unwrap();
         }
-    } else {
-        let file = encore::normalize(&mut args.into_iter());
-        parse_playlist(&file, 1).unwrap();
     }
 
     let playlist_len = PLAYLIST.read().unwrap().len();
@@ -266,7 +245,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let mut first_time = true;
                         while *shuffle_original_playlist.as_ref().unwrap() == *playlist || first_time {
                             first_time = false;
-                            encore::shuffle_playlist(&mut playlist);
+                            encore_shared::shuffle_playlist(&mut playlist);
                         }
                     } else {
                         let mut shuffle_original_playlist = SHUFFLE_ORIGINAL_PLAYLIST.write().unwrap();

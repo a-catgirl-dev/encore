@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "configuration"), allow(unused))]
 
+use encore_shared::{EllipsizeMode, ConfigurationPath};
+
 #[cfg(feature = "configuration")]
 use serde::Deserialize;
 
@@ -45,14 +47,14 @@ impl Default for TomlMain {
 pub struct TomlPlaylist {
     pub never_use: bool,
     pub highlighted_color: String,
-    pub ellipsis_mode: encore::EllipsizeMode,
+    pub ellipsis_mode: EllipsizeMode,
 }
 impl Default for TomlPlaylist {
     fn default() -> Self {
         Self {
             never_use: false,
             highlighted_color: "f5c2e7".to_string(),
-            ellipsis_mode: encore::EllipsizeMode::End,
+            ellipsis_mode: EllipsizeMode::End,
         }
     }
 }
@@ -81,7 +83,7 @@ impl Default for TomlKeybinds {
 }
 
 impl Config {
-    pub fn parse(to_parse: &encore::ConfigurationPath) -> Self {
+    pub fn parse(to_parse: &ConfigurationPath) -> Self {
     #[cfg(not(feature = "configuration"))] {
         Config::default()
     }
@@ -90,8 +92,8 @@ impl Config {
         use std::fs::read_to_string;
 
         let file = match to_parse {
-            encore::ConfigurationPath::Default => DEFAULT_CFG_PATH,
-            encore::ConfigurationPath::Custom(s) => s
+            ConfigurationPath::Default => DEFAULT_CFG_PATH,
+            ConfigurationPath::Custom(s) => s
         };
         #[allow(deprecated)]
         let file = format!("{}/{}", std::env::home_dir().unwrap().to_string_lossy().to_string(), file);
