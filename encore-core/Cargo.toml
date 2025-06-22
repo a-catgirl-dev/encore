@@ -5,6 +5,7 @@ name = "encore-core"
 version = "0.2.0-canary.3"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+description = "encore core startup and logic functionality"
 
 [[bin]]
 name = "encore"
@@ -15,6 +16,8 @@ path = "src/main.rs"
 encore-configuration = { path = "../encore-configuration" }
 encore-playlist = { path = "../encore-playlist" }
 encore-shared = { path = "../encore-shared" }
+encore-static.workspace = true
+encore-audio.workspace = true
 
 # external dependencies
 # TODO: put in places where it is used

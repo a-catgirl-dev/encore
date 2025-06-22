@@ -1,0 +1,10 @@
+[package]
+name = "encore-audio"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# mp3 support is huge. don't compile it if you don't plan on playing any mp3s.
+# or you can trade binary size for memory leaks by using `minimp3` instead.
+encore-static.workspace = true
+rodio = { path = "../encore-rodio", default-features = false, features = ["mp3", "symphonia-flac", "vorbis", "wav"] }

@@ -1,4 +1,3 @@
-mod song;
 mod input;
 mod tui;
 mod threading;
@@ -8,28 +7,16 @@ mod mpris_handler;
 #[macro_use]
 mod macros;
 
-use std::sync::{atomic::{AtomicBool, AtomicU64, AtomicU8, AtomicUsize, Ordering::Relaxed}, mpsc::channel, Arc, Condvar, RwLock, Mutex};
+use std::sync::{atomic::{Ordering::Relaxed}, mpsc::channel, Arc, Condvar, Mutex};
 use std::{io::BufReader, fs::File};
 use encore_shared::{IntegerExtensions, LoopMode};
+use encore_static::*;
 
 use threading::ThreadAbstraction;
 
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
-
-lazy_static::lazy_static!{
-    static ref PLAYLIST: RwLock<Vec<String>> = Default::default();
-    static ref SHUFFLE_ORIGINAL_PLAYLIST: RwLock<Option<Vec<String>>> = RwLock::new(None);
-    static ref SONG_INDEX: AtomicUsize = AtomicUsize::new(0);
-    static ref SONG_TOTAL_LEN: AtomicU64 = AtomicU64::new(0);
-    static ref SONG_CURRENT_LEN: AtomicU64 = AtomicU64::new(0);
-    static ref LOOP_MODE: AtomicU8 = AtomicU8::new(LoopMode::NoLoop as u8);
-    static ref PAUSED: AtomicBool = AtomicBool::new(false);
-    static ref VOLUME_LEVEL: encore_shared::AtomicF32 = encore_shared::AtomicF32::new(0.0);
-
-    static ref CONFIG: RwLock<encore_configuration::Config> = Default::default();
-}
 
 fn quit_with(e: &str, s: &str) -> Result<std::convert::Infallible, Box<dyn std::error::Error>> {
     eprintln!("{e}");
@@ -163,7 +150,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // controls.detach is a little slow...
     }, cfg!(feature = "mpris"));
 
-    let mut audio = song::Song::new();
+    let mut audio = encore_audio::Song::new();
     audio.play();
     audio.sink.set_volume(cfg.main.default_vol.to_rodio());
     sync_audio_data(&audio);
@@ -313,7 +300,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn sync_audio_data(audio: &song::Song) {
+fn sync_audio_data(audio: &encore_audio::Song) {
     // there is a bug here: sometimes, this returns None.
     // some mp3s work, but others don't. i dont know why precisely.
 

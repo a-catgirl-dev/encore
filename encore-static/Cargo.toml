@@ -1,0 +1,10 @@
+[package]
+name = "encore-static"
+version = "0.1.0"
+edition = "2024"
+description = "encore static shared state" # probably should do it in encore-shared?
+
+[dependencies]
+encore-shared.workspace = true  # wtf why -
+encore-configuration.workspace = true
+lazy_static.workspace = true

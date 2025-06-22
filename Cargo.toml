@@ -3,7 +3,14 @@
 [workspace]
 resolver = "2"
 # `encore-*` instead?
-members = [ "encore-configuration", "encore-playlist", "encore-shared", "encore-core" ]
+members = [
+    "encore-configuration",
+    "encore-playlist",
+    "encore-shared",
+    "encore-core",
+    "encore-audio",
+    "encore-static",
+]
 
 [workspace.dependencies]
 # encore workspace
@@ -11,6 +18,8 @@ encore-core = { path = "encore-core" }
 encore-configuration = { path = "encore-configuration" }
 encore-playlist = { path = "encore-playlist" }
 encore-shared = { path = "encore-shared" }
+encore-static = { path = "encore-static" }
+encore-audio = { path = "encore-audio" }
 
 # external dependencies
 # TODO: put in places where it is used
