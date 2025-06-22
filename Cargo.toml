@@ -18,10 +18,6 @@ getch-rs = "=0.2.0"
 lazy_static = "1.5.0"
 terminal_size = { version = "0.3.0", default-features = false }
 
-# [dependencies]
-encore-core = { path = "encore-core" }
-encore-shared = { path = "encore-shared" }
-
 # [profile.dev]
 # incremental = true
 # codegen-backend = "cranelift"
