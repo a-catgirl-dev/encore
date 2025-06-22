@@ -1,4 +1,4 @@
-# cargo-features = ["codegen-backend"]
+cargo-features = ["codegen-backend"]
 
 [workspace]
 resolver = "2"
@@ -28,12 +28,12 @@ encore-cli = { path = "encore-cli" }
 # TODO: put in places where it is used
 lazy_static = "1.5.0"
 
-# [profile.dev]
-# incremental = true
-# codegen-backend = "cranelift"
+[profile.dev]
+incremental = true
+codegen-backend = "cranelift"
 
-# [profile.dev.package."*"]
-# opt-level = 'z'
+[profile.dev.package."*"]
+opt-level = 'z'
 
 [profile.release]
 opt-level = 'z'
