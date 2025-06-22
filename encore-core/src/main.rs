@@ -1,5 +1,3 @@
-mod input;
-mod tui;
 mod threading;
 
 mod mpris_handler;
@@ -11,6 +9,7 @@ use std::sync::{atomic::{Ordering::Relaxed}, mpsc::channel, Arc, Condvar, Mutex}
 use std::{io::BufReader, fs::File};
 use encore_shared::{IntegerExtensions, LoopMode};
 use encore_static::*;
+use encore_cli::{input, tui};
 
 use threading::ThreadAbstraction;
 

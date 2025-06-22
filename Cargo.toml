@@ -10,6 +10,7 @@ members = [
     "encore-core",
     "encore-audio",
     "encore-static",
+    "encore-cli",
 ]
 
 [workspace.dependencies]
@@ -21,11 +22,11 @@ encore-shared = { path = "encore-shared" }
 encore-static = { path = "encore-static" }
 encore-audio = { path = "encore-audio" }
 
+encore-cli = { path = "encore-cli" }
+
 # external dependencies
 # TODO: put in places where it is used
-getch-rs = "=0.2.0"
 lazy_static = "1.5.0"
-terminal_size = { version = "0.3.0", default-features = false }
 
 # [profile.dev]
 # incremental = true

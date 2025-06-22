@@ -6,7 +6,7 @@
 use std::io::{stdout, StdoutLock, BufWriter, Write};
 use std::sync::atomic::Ordering::Relaxed;
 use encore_shared::{RenderMode, LoopMode, EllipsizeMode};
-use crate::{SONG_INDEX, PLAYLIST, SONG_CURRENT_LEN, SONG_TOTAL_LEN, VOLUME_LEVEL, LOOP_MODE};
+use encore_static::{CONFIG, SONG_INDEX, PLAYLIST, SONG_CURRENT_LEN, SONG_TOTAL_LEN, VOLUME_LEVEL, LOOP_MODE};
 use unicode_width::UnicodeWidthStr;
 
 macro_rules! not_enough_space {
@@ -40,7 +40,7 @@ impl Tui<'_> {
         // switch, so increases overhead on the system itself), we buffer the stdout.
         let handle = BufWriter::new(stdout);
 
-        let ellipsis_mode = crate::CONFIG.read().unwrap().playlist.ellipsis_mode;
+        let ellipsis_mode = CONFIG.read().unwrap().playlist.ellipsis_mode;
 
         Tui {
             handle,

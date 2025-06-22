@@ -18,12 +18,11 @@ encore-playlist = { path = "../encore-playlist" }
 encore-shared = { path = "../encore-shared" }
 encore-static.workspace = true
 encore-audio.workspace = true
+encore-cli.workspace = true
 
 # external dependencies
 # TODO: put in places where it is used
-getch-rs.workspace = true
 lazy_static.workspace = true
-terminal_size.workspace = true
 
 # Optionals
 # Configuration Support
@@ -34,7 +33,6 @@ serde = { version = "1.0.210", optional = true, features = ["serde_derive"] }
 rodio = { path = "../encore-rodio", default-features = false, features = ["mp3", "symphonia-flac", "vorbis", "wav"] }
 dhat = { version = "0.3.3", optional = true }
 souvlaki = { path = "../encore-souvlaki", optional = true }
-unicode-width = "0.2.0"
 
 # [profile.dev]
 # incremental = true

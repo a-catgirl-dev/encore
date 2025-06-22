@@ -9,7 +9,7 @@ impl Input {
     }
 
     pub fn blocking_wait_for_input(&self) -> SongControl {
-        let config = &crate::CONFIG.read().unwrap().keybinds;
+        let config = &encore_static::CONFIG.read().unwrap().keybinds;
 
         let mut keybind_map: std::collections::HashMap<char, SongControl> = std::collections::HashMap::new();
         keybind_map.insert(config.toggle_loop, SongControl::ToggleLoop);

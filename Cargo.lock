@@ -980,6 +980,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "encore-cli"
+version = "0.1.0"
+dependencies = [
+ "encore-shared",
+ "encore-static",
+ "getch-rs",
+ "terminal_size 0.3.0",
+ "unicode-width 0.2.0",
+]
+
+[[package]]
 name = "encore-configuration"
 version = "0.1.0"
 dependencies = [
@@ -995,17 +1006,15 @@ dependencies = [
  "basic-toml",
  "dhat",
  "encore-audio",
+ "encore-cli",
  "encore-configuration",
  "encore-playlist",
  "encore-shared",
  "encore-static",
- "getch-rs",
  "lazy_static",
  "rodio",
  "serde",
  "souvlaki",
- "terminal_size 0.3.0",
- "unicode-width 0.2.0",
 ]
 
 [[package]]

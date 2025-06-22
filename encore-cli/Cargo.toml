@@ -1,0 +1,11 @@
+[package]
+name = "encore-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+encore-shared.workspace = true
+encore-static.workspace = true
+getch-rs = "=0.2.0"
+unicode-width = "0.2.0"
+terminal_size = { version = "0.3.0", default-features = false }
