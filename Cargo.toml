@@ -1,18 +1,13 @@
-cargo-features = ["codegen-backend"]
-
-[package]
-name = "encore"
-version = "0.2.0-canary.3"
-edition = "2021"
-license = "MIT OR Apache-2.0"
+# cargo-features = ["codegen-backend"]
 
 [workspace]
 resolver = "2"
 # `encore-*` instead?
-members = [ "encore-configuration", "encore-playlist", "encore-shared" ]
+members = [ "encore-configuration", "encore-playlist", "encore-shared", "encore-core" ]
 
-[dependencies]
+[workspace.dependencies]
 # encore workspace
+encore-core = { path = "encore-core" }
 encore-configuration = { path = "encore-configuration" }
 encore-playlist = { path = "encore-playlist" }
 encore-shared = { path = "encore-shared" }
@@ -23,23 +18,16 @@ getch-rs = "=0.2.0"
 lazy_static = "1.5.0"
 terminal_size = { version = "0.3.0", default-features = false }
 
-# Optionals
-# Configuration Support
-basic-toml = { version = "0.1.9", optional = true }
-serde = { version = "1.0.210", optional = true, features = ["serde_derive"] }
-# mp3 support is huge. don't compile it if you don't plan on playing any mp3s.
-# or you can trade binary size for memory leaks by using `minimp3` instead.
-rodio = { path = "./encore-rodio", default-features = false, features = ["mp3", "symphonia-flac", "vorbis", "wav"] }
-dhat = { version = "0.3.3", optional = true }
-souvlaki = { path = "./encore-souvlaki", optional = true }
-unicode-width = "0.2.0"
+# [dependencies]
+encore-core = { path = "encore-core" }
+encore-shared = { path = "encore-shared" }
 
-[profile.dev]
-incremental = true
-codegen-backend = "cranelift"
+# [profile.dev]
+# incremental = true
+# codegen-backend = "cranelift"
 
-[profile.dev.package."*"]
-opt-level = 'z'
+# [profile.dev.package."*"]
+# opt-level = 'z'
 
 [profile.release]
 opt-level = 'z'
@@ -52,10 +40,4 @@ strip = true
 inherits = "release"
 debug = true
 strip = false
-
-[features]
-default = [ "mpris" ]
-configuration = [ "basic-toml", "serde", "encore-shared/configuration" ]
-dhat-heap = [ "dhat" ]
-mpris = [ "souvlaki" ]
 
