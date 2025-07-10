@@ -1,7 +1,0 @@
-[submodule "encore-rodio"]
-	path = encore-rodio
-	url = https://github.com/williamanimate/rodio-iwantthetotalduration
-	branch = upstream_stable
-[submodule "encore-souvlaki"]
-	path = encore-souvlaki
-	url = https://github.com/WilliamAnimate/encore-souvlaki.git

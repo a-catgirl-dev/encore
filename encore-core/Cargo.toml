@@ -30,9 +30,9 @@ basic-toml = { version = "0.1.9", optional = true }
 serde = { version = "1.0.210", optional = true, features = ["serde_derive"] }
 # mp3 support is huge. don't compile it if you don't plan on playing any mp3s.
 # or you can trade binary size for memory leaks by using `minimp3` instead.
-rodio = { path = "../encore-rodio", default-features = false, features = ["mp3", "symphonia-flac", "vorbis", "wav"] }
 dhat = { version = "0.3.3", optional = true }
-souvlaki = { path = "../encore-souvlaki", optional = true }
+# souvlaki = { path = "../encore-souvlaki", optional = true }
+souvlaki = { git = "https://codeberg.org/a-catgirl/encore-souvlaki.git", rev = "a24f6296e9", optional = true }
 
 # [profile.dev]
 # incremental = true
